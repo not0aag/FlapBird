@@ -1,0 +1,6 @@
+file 'C:\Users\alena\flappysanskrit\FlapBird\audiofiles\31.da.mp3'
+file 'C:\Users\alena\flappysanskrit\FlapBird\audiofiles\40.ra.mp3'
+file 'C:\Users\alena\flappysanskrit\FlapBird\audiofiles\2.aa.mp3'
+file 'C:\Users\alena\flappysanskrit\FlapBird\audiofiles\14.ka.mp3'
+file 'C:\Users\alena\flappysanskrit\FlapBird\audiofiles\44.shha.mp3'
+file 'C:\Users\alena\flappysanskrit\FlapBird\audiofiles\2.aa.mp3'

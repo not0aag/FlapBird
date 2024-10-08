@@ -1,0 +1,29 @@
+{
+    "vegetables": [
+      {
+        "english": "potato",
+        "hindi": "आलू",
+        "transliteration": "aloo"
+      },
+      {
+        "english": "tomato",
+        "hindi": "टमाटर",
+        "transliteration": "tamatar"
+      },
+      {
+        "english": "onion",
+        "hindi": "प्याज",
+        "transliteration": "pyaaz"
+      },
+      {
+        "english": "carrot",
+        "hindi": "गाजर",
+        "transliteration": "gajar"
+      },
+      {
+        "english": "cucumber",
+        "hindi": "खीरा",
+        "transliteration": "kheera"
+      }
+    ]
+  }

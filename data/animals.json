@@ -1,0 +1,29 @@
+{
+    "animals": [
+      {
+        "english": "cat",
+        "hindi": "बिल्ली",
+        "transliteration": "billi"
+      },
+      {
+        "english": "dog",
+        "hindi": "कुत्ता",
+        "transliteration": "kutta"
+      },
+      {
+        "english": "elephant",
+        "hindi": "हाथी",
+        "transliteration": "haathi"
+      },
+      {
+        "english": "lion",
+        "hindi": "शेर",
+        "transliteration": "sher"
+      },
+      {
+        "english": "monkey",
+        "hindi": "बंदर",
+        "transliteration": "bandar"
+      }
+    ]
+  }

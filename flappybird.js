@@ -6,119 +6,38 @@ let context;
 let playerWidth = 34;
 let playerHeight = 24;
 let playerX = boardWidth / 8;
-let playerY = boardHeight / 2; 
+let playerY = boardHeight / 2;
 let playerImg;
 
-let gravity = 0.05;
-let lift = -3;
+let gravity = 0.4;  // Increased gravity
+let lift = -7;  // Increased lift for more responsive jumps
 let velocity = 0;
+
 let gameStarted = false;
 let gameOver = false;
 
-let scrollSpeed = 0.3;
+let scrollSpeed = 2;  // Increased scroll speed
 
 let currentWord = "";
 let currentWordHindi = "";
 let collectedLetters = [];
 let letterWidth = 40;
 let letterHeight = 40;
-let letterSpacing = 200;
+let letterSpacing = 150;  // Reduced letter spacing
 
 let audioContext;
 
-const hindiWords = [
-    { hindi: "सेब", english: "seb" },
-    { hindi: "आम", english: "aam" },
-    { hindi: "केला", english: "kela" },
-    { hindi: "अनार", english: "anaar" },
-    { hindi: "अंगूर", english: "angoor" },
-    { hindi: "नाशपाती", english: "nashpati" },
-    { hindi: "पपीता", english: "papita" },
-    { hindi: "खरबूजा", english: "kharbooja" },
-    { hindi: "तरबूज", english: "tarbooj" },
-    { hindi: "नींबू", english: "neembu" },
-    { hindi: "संतरा", english: "santra" },
-    { hindi: "अमरूद", english: "amrood" },
-    { hindi: "लीची", english: "lichi" },
-    { hindi: "जामुन", english: "jamun" },
-    { hindi: "आलूबुखारा", english: "alubukhara" }
-];
-
 let letterArray = [];
 
-const hindiAudioMapping = {
-    'अ': 'audiofiles/1.a.mp3',
-    'आ': 'audiofiles/2.aa.mp3',
-    'इ': 'audiofiles/3.i..mp3',
-    'ई': 'audiofiles/4.ii.mp3',
-    'उ': 'audiofiles/5.u.mp3',
-    'ऊ': 'audiofiles/6.oo.mp3',
-    'ए': 'audiofiles/7.e.mp3',
-    'ऐ': 'audiofiles/8.ai.mp3',
-    'ओ': 'audiofiles/9.o.mp3',
-    'औ': 'audiofiles/10.au.mp3',
-    'अं': 'audiofiles/11.un.mp3',
-    'अः': 'audiofiles/12.uh.mp3',
-    'ऋ': 'audiofiles/13.ri.mp3',
-    'क': 'audiofiles/14.ka.mp3',
-    'ख': 'audiofiles/15.kha.mp3',
-    'ग': 'audiofiles/16.ga.mp3',
-    'घ': 'audiofiles/17.gha.mp3',
-    'ङ': 'audiofiles/18.nga.mp3',
-    'च': 'audiofiles/19.cha.mp3',
-    'छ': 'audiofiles/20.chha.mp3',
-    'ज': 'audiofiles/21.ja.mp3',
-    'झ': 'audiofiles/22.jha.mp3',
-    'ञ': 'audiofiles/23.nja.mp3',
-    'ट': 'audiofiles/24.ta.mp3',
-    'ठ': 'audiofiles/25.tha.mp3',
-    'ड': 'audiofiles/26.da.mp3',
-    'ढ': 'audiofiles/27.dha.mp3',
-    'ण': 'audiofiles/28.na.mp3',
-    'त': 'audiofiles/29.ta.mp3',
-    'थ': 'audiofiles/30.tha.mp3',
-    'द': 'audiofiles/31.da.mp3',
-    'ध': 'audiofiles/32.dha.mp3',
-    'न': 'audiofiles/33.na.mp3',
-    'प': 'audiofiles/34.pa.mp3',
-    'फ': 'audiofiles/35.pha.mp3',
-    'ब': 'audiofiles/36.ba.mp3',
-    'भ': 'audiofiles/37.bha.mp3',
-    'म': 'audiofiles/38.ma.mp3',
-    'य': 'audiofiles/39.ya.mp3',
-    'र': 'audiofiles/40.ra.mp3',
-    'ल': 'audiofiles/41.la.mp3',
-    'व': 'audiofiles/42.wa.mp3',
-    'श': 'audiofiles/43.sha.mp3',
-    'ष': 'audiofiles/44.shha.mp3',
-    'स': 'audiofiles/45.sa.mp3',
-    'ह': 'audiofiles/46.ha.mp3',
-    'क्ष': 'audiofiles/47.ksh.mp3',
-    'त्र': 'audiofiles/48.tra.mp3',
-    'ज्ञ': 'audiofiles/49.gya.mp3',
-    'श्र': 'audiofiles/50.sra.mp3',
-    'ी': 'audiofiles/4.ii.mp3',
-    'ू': 'audiofiles/6.oo.mp3',
-    'ं': 'audiofiles/11.un.mp3'
-};
+let currentCategory = '';
 
-const fruitAudioMapping = {
-    "seb": "audiofiles/seb.m4a",
-    "aam": "audiofiles/aam.m4a",
-    "kela": "audiofiles/kela.m4a",
-    "anaar": "audiofiles/anaar.m4a",
-    "angoor": "audiofiles/angoor.m4a",
-    "nashpati": "audiofiles/nashpati.m4a",
-    "papita": "audiofiles/papita.m4a",
-    "kharbooja": "audiofiles/kahrbooja.m4a",
-    "tarbooj": "audiofiles/tarbooj.m4a",
-    "neembu": "audiofiles/neembu.m4a",
-    "santra": "audiofiles/santara.m4a",
-    "amrood": "audiofiles/amarood.m4a",
-    "lichi": "audiofiles/lichi.m4a",
-    "jamun": "audiofiles/jamun.m4a",
-    "alubukhara": "audiofiles/aaloobukhaara.m4a"
-};
+let apiBaseUrl = 'http://localhost:3000';
+
+let lastTime = 0;
+const targetFPS = 60;
+const frameInterval = 1000 / targetFPS;
+
+let hindiWords = [];
 
 window.onload = function() {
     board = document.getElementById("board");
@@ -129,34 +48,53 @@ window.onload = function() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
     playerImg = new Image();
-    playerImg.onload = function() {
-        selectNewWord();
-        placeLetters();
-        requestAnimationFrame(gameLoop);
-    };
-    
-    playerImg.onerror = function() {
-        context.fillStyle = "red";
-        context.fillText("Error loading image!", boardWidth/2 - 60, boardHeight/2);
-    };
-
     playerImg.src = "flappybird.png";
+    
+    setupEventListeners();
+};
+
+function setupEventListeners() {
+    document.querySelectorAll('.category-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            currentCategory = button.dataset.category;
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            fetchWordData();
+        });
+    });
 
     board.addEventListener('click', handleClick);
     document.addEventListener('keydown', handleKeyDown);
     document.getElementById('start-button').addEventListener('click', startGame);
     document.getElementById('try-again-button').addEventListener('click', resetGame);
-};
+    
+    document.getElementById('back-to-menu').addEventListener('click', backToMenu);
+    document.getElementById('back-to-menu-gameover').addEventListener('click', backToMenu);
+}
+
+function backToMenu() {
+    document.getElementById('game-container').style.display = 'none';
+    document.getElementById('welcome-screen').style.display = 'block';
+    resetGame();
+    gameStarted = false;
+    gameOver = false;
+}
+
+function fetchWordData() {
+    fetch(`${apiBaseUrl}/words?category=${currentCategory}`)
+        .then(response => response.json())
+        .then(data => {
+            hindiWords = data;
+            selectNewWord();
+            placeLetters();
+            document.getElementById('start-screen').style.display = 'flex';
+        });
+}
 
 function handleKeyDown(e) {
     if (e.code === "Space") {
         e.preventDefault();
-        if (!gameStarted && !gameOver) {
-            startGame();
-        }
-        if (gameStarted && !gameOver) {
-            velocity = lift;
-        }
+        handleClick();
     }
 }
 
@@ -169,18 +107,14 @@ function selectNewWord() {
 
 function placeLetters() {
     letterArray = [];
-    const letters = currentWord.split('');
+    const letters = currentWordHindi.split('');
     
-    for (let i = 0; i < currentWordHindi.length; i++) {
-        const hindiChar = currentWordHindi[i];
-        const englishChar = letters[i] || '';
+    for (let i = 0; i < letters.length; i++) {
         letterArray.push({
-            char: englishChar,
-            hindiChar: hindiChar,
+            char: letters[i],
             x: boardWidth + i * (letterWidth + letterSpacing),
             y: Math.random() * (boardHeight - letterHeight - 100) + 50,
-            color: getRandomColor(),
-            audio: hindiAudioMapping[hindiChar] || 'audiofiles/1.a.mp3'
+            color: getRandomColor()
         });
     }
 }
@@ -190,18 +124,24 @@ function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function playAudio(audioFile) {
-    const audio = new Audio(audioFile);
-    audio.play().catch(e => {
-        console.error("Error playing audio:", e);
-        console.log("Attempted to play:", audioFile);
-    });
+function playAudio(audioUrl) {
+    fetch(audioUrl)
+        .then(response => response.arrayBuffer())
+        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+        .then(audioBuffer => {
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
+            source.start();
+        });
 }
 
 function startGame() {
     document.getElementById('start-screen').style.display = 'none';
     gameStarted = true;
-    velocity = lift;
+    velocity = 0;
+    playerY = boardHeight / 2;
+    lastTime = 0;
     requestAnimationFrame(gameLoop);
 }
 
@@ -224,9 +164,9 @@ function checkCollisions() {
             playerY < letter.y + letterHeight &&
             playerY + playerHeight > letter.y
         ) {
-            if (letter.hindiChar === currentWordHindi[collectedLetters.length]) {
-                collectedLetters.push(letter.hindiChar);
-                playAudio(letter.audio);
+            if (letter.char === currentWordHindi[collectedLetters.length]) {
+                collectedLetters.push(letter.char);
+                playAudio(`${apiBaseUrl}/audio?char=${encodeURIComponent(letter.char)}`);
                 letterArray.splice(index, 1);
                 
                 if (collectedLetters.length === currentWordHindi.length) {
@@ -239,63 +179,78 @@ function checkCollisions() {
     });
 }
 
-function gameLoop() {
-    if (gameStarted && !gameOver) {
-        velocity += gravity;
-        playerY += velocity;
-        updateLetters();
-        checkCollisions();
+function gameLoop(currentTime) {
+    if (!lastTime) lastTime = currentTime;
+    const deltaTime = currentTime - lastTime;
 
-        if (playerY > boardHeight - playerHeight || playerY < 0) {
-            endGame();
-            return;
+    if (deltaTime >= frameInterval) {
+        lastTime = currentTime - (deltaTime % frameInterval);
+
+        if (gameStarted && !gameOver) {
+            velocity += gravity;
+            playerY += velocity;
+            updateLetters();
+            checkCollisions();
+
+            if (playerY > boardHeight - playerHeight || playerY < 0) {
+                endGame();
+                return;
+            }
         }
-    }
 
-    context.clearRect(0, 0, boardWidth, boardHeight);
-    
-    context.drawImage(playerImg, playerX, playerY, playerWidth, playerHeight);
-
-    letterArray.forEach(letter => {
-        context.fillStyle = letter.color;
-        context.fillRect(letter.x, letter.y, letterWidth, letterHeight);
+        context.clearRect(0, 0, boardWidth, boardHeight);
         
-        context.fillStyle = "white";
-        context.font = "bold 24px Arial";
-        context.textAlign = "center";
-        context.textBaseline = "middle";
-        context.fillText(letter.hindiChar, letter.x + letterWidth/2, letter.y + letterHeight/2);
-    });
+        context.drawImage(playerImg, playerX, playerY, playerWidth, playerHeight);
 
-    context.textAlign = "left";
-    context.textBaseline = "alphabetic";
-    
-    context.font = "24px Arial";
-    context.fillStyle = "black";
-    context.fillText("Word: " + currentWordHindi, 10, 30);
-    context.fillText("Collected: " + collectedLetters.join(""), 10, 60);
-    context.fillText("Score: " + collectedLetters.length, 10, 90);
+        letterArray.forEach(letter => {
+            context.fillStyle = letter.color;
+            context.fillRect(letter.x, letter.y, letterWidth, letterHeight);
+            
+            context.fillStyle = "white";
+            context.font = "bold 24px Arial";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillText(letter.char, letter.x + letterWidth/2, letter.y + letterHeight/2);
+        });
+
+        context.textAlign = "left";
+        context.textBaseline = "alphabetic";
+        
+        context.font = "24px Arial";
+        context.fillStyle = "black";
+        context.fillText(`Category: ${currentCategory}`, 10, 30);
+        context.fillText(`Word: ${currentWordHindi}`, 10, 60);
+        context.fillText(`Collected: ${collectedLetters.join("")}`, 10, 90);
+        context.fillText(`English: ${currentWord}`, 10, 120);
+    }
 
     requestAnimationFrame(gameLoop);
 }
 
 function completeWord() {
     gameOver = true;
+    
+    fetch(`${apiBaseUrl}/audio?word=${encodeURIComponent(currentWordHindi)}`)
+        .then(response => response.json())
+        .then(data => {
+            let delay = 0;
+            data.files.forEach((file, index) => {
+                setTimeout(() => {
+                    playAudio(`${apiBaseUrl}/audiofiles/${file}`);
+                }, delay);
+                delay += 300;
+            });
+        });
+    
     document.getElementById('game-over-message').textContent = `Word Completed: ${currentWordHindi} (${currentWord})`;
     document.getElementById('collected-word').textContent = `Collected: ${collectedLetters.join("")}`;
     document.getElementById('try-again-button').textContent = 'Next Word';
     document.getElementById('game-over-screen').style.display = 'flex';
-    setTimeout(() => {
-        const fruitAudio = fruitAudioMapping[currentWord];
-        if (fruitAudio) {
-            playAudio(fruitAudio);
-        }
-    }, 1000);
 }
 
 function incorrectLetter() {
     gameOver = true;
-    document.getElementById('game-over-message').textContent = 'Incorrect Letter! Try again!';
+    document.getElementById('game-over-message').textContent = 'Wrong Letter! Try again!';
     document.getElementById('try-again-button').textContent = 'Try Again';
     document.getElementById('game-over-screen').style.display = 'flex';
 }
@@ -316,21 +271,15 @@ function resetGame() {
     gameStarted = true;
     playerY = boardHeight / 2;
     velocity = 0;
+    lastTime = 0;
+    requestAnimationFrame(gameLoop);  // Restart the game loop
 }
 
-function handleClick(event) {
-    if (gameOver) {
-        const rect = board.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
-
-        if (
-            clickX > boardWidth/2 - 50 &&
-            clickX < boardWidth/2 + 50 &&
-            clickY > boardHeight/2 + 50 &&
-            clickY < boardHeight/2 + 90
-        ) {
-            resetGame();
-        }
+function handleClick() {
+    if (!gameStarted && !gameOver) {
+        startGame();
+    }
+    if (gameStarted && !gameOver) {
+        velocity = lift;
     }
 }
