@@ -9,21 +9,21 @@ let playerX = boardWidth / 8;
 let playerY = boardHeight / 2;
 let playerImg;
 
-let gravity = 0.4;  // Increased gravity
-let lift = -7;  // Increased lift for more responsive jumps
+let gravity = 0.4;
+let lift = -7;
 let velocity = 0;
 
 let gameStarted = false;
 let gameOver = false;
 
-let scrollSpeed = 2;  // Increased scroll speed
+let scrollSpeed = 2;
 
 let currentWord = "";
 let currentWordHindi = "";
 let collectedLetters = [];
 let letterWidth = 40;
 let letterHeight = 40;
-let letterSpacing = 150;  // Reduced letter spacing
+let letterSpacing = 150;
 
 let audioContext;
 
@@ -65,9 +65,15 @@ function setupEventListeners() {
 
     board.addEventListener('click', handleClick);
     document.addEventListener('keydown', handleKeyDown);
-    document.getElementById('start-button').addEventListener('click', startGame);
-    document.getElementById('try-again-button').addEventListener('click', resetGame);
     
+    const startButton = document.getElementById('start-button');
+    if (startButton) {
+        startButton.addEventListener('click', startGame);
+    } else {
+        console.error("Start button not found");
+    }
+    
+    document.getElementById('try-again-button').addEventListener('click', resetGame);
     document.getElementById('back-to-menu').addEventListener('click', backToMenu);
     document.getElementById('back-to-menu-gameover').addEventListener('click', backToMenu);
 }
@@ -139,6 +145,7 @@ function playAudio(audioUrl) {
 function startGame() {
     document.getElementById('start-screen').style.display = 'none';
     gameStarted = true;
+    gameOver = false;
     velocity = 0;
     playerY = boardHeight / 2;
     lastTime = 0;
@@ -180,13 +187,15 @@ function checkCollisions() {
 }
 
 function gameLoop(currentTime) {
+    if (!gameStarted) return;
+
     if (!lastTime) lastTime = currentTime;
     const deltaTime = currentTime - lastTime;
 
     if (deltaTime >= frameInterval) {
         lastTime = currentTime - (deltaTime % frameInterval);
 
-        if (gameStarted && !gameOver) {
+        if (!gameOver) {
             velocity += gravity;
             playerY += velocity;
             updateLetters();
@@ -230,22 +239,14 @@ function gameLoop(currentTime) {
 function completeWord() {
     gameOver = true;
     
-    fetch(`${apiBaseUrl}/audio?word=${encodeURIComponent(currentWordHindi)}`)
-        .then(response => response.json())
-        .then(data => {
-            let delay = 0;
-            data.files.forEach((file, index) => {
-                setTimeout(() => {
-                    playAudio(`${apiBaseUrl}/audiofiles/${file}`);
-                }, delay);
-                delay += 300;
-            });
-        });
-    
     document.getElementById('game-over-message').textContent = `Word Completed: ${currentWordHindi} (${currentWord})`;
     document.getElementById('collected-word').textContent = `Collected: ${collectedLetters.join("")}`;
     document.getElementById('try-again-button').textContent = 'Next Word';
     document.getElementById('game-over-screen').style.display = 'flex';
+
+    setTimeout(() => {
+        playAudio(`${apiBaseUrl}/audio?word=${encodeURIComponent(currentWord)}`);
+    }, 2000);
 }
 
 function incorrectLetter() {
@@ -272,7 +273,7 @@ function resetGame() {
     playerY = boardHeight / 2;
     velocity = 0;
     lastTime = 0;
-    requestAnimationFrame(gameLoop);  // Restart the game loop
+    requestAnimationFrame(gameLoop);
 }
 
 function handleClick() {

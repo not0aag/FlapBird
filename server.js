@@ -118,13 +118,12 @@ app.get('/audio', async (req, res) => {
   
   try {
     if (word) {
-      const audioFiles = [];
-      for (const char of word) {
-        if (audioFileMap[char]) {
-          audioFiles.push(`${audioFileMap[char]}.mp3`);
-        }
+      const audioFilePath = path.join(__dirname, 'audiofiles', 'combinedwords', `${word}.mp3`);
+      if (await fs.access(audioFilePath).then(() => true).catch(() => false)) {
+        res.sendFile(audioFilePath);
+      } else {
+        res.status(404).json({ error: 'Word audio file not found' });
       }
-      res.json({ files: audioFiles });
     } else if (char && audioFileMap[char]) {
       const audioFileName = `${audioFileMap[char]}.mp3`;
       const audioPath = path.join(__dirname, 'audiofiles', audioFileName);
