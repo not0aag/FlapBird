@@ -1,10 +1,10 @@
 let board;
-let boardWidth = 360;
-let boardHeight = 640;
+let boardWidth = 800;
+let boardHeight = 900;
 let context;
 
-let playerWidth = 34;
-let playerHeight = 24;
+let playerWidth = 68;
+let playerHeight = 48;
 let playerX = boardWidth / 8;
 let playerY = boardHeight / 2;
 let playerImg;
@@ -21,8 +21,8 @@ let scrollSpeed = 2;
 let currentWord = "";
 let currentWordHindi = "";
 let collectedLetters = [];
-let letterWidth = 40;
-let letterHeight = 40;
+let letterWidth = 60;
+let letterHeight = 60;
 let letterSpacing = 150;
 
 let audioContext;
@@ -39,26 +39,39 @@ const frameInterval = 1000 / targetFPS;
 
 let hindiWords = [];
 
-window.onload = function() {
-    board = document.getElementById("board");
-    board.width = boardWidth;
-    board.height = boardHeight;
-    context = board.getContext("2d");
-    
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+function initAudio() {
+    if (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } else {
+        console.log('AudioContext not available');
+    }
+}
 
-    playerImg = new Image();
-    playerImg.src = "flappybird.png";
-    
-    setupEventListeners();
-};
+function init() {
+    if (typeof document !== 'undefined') {
+        board = document.getElementById("board");
+        if (board) {
+            board.width = boardWidth;
+            board.height = boardHeight;
+            context = board.getContext("2d");
+        }
+
+        playerImg = new Image();
+        playerImg.src = "flappybird.png";
+        
+        setupEventListeners();
+    }
+    initAudio();
+}
 
 function setupEventListeners() {
+    if (typeof document === 'undefined') return;
+
     document.querySelectorAll('.category-btn').forEach(button => {
         button.addEventListener('click', () => {
             currentCategory = button.dataset.category;
             document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('game-container').style.display = 'flex';
             fetchWordData();
         });
     });
@@ -84,6 +97,7 @@ function backToMenu() {
     resetGame();
     gameStarted = false;
     gameOver = false;
+    document.querySelector('footer a').style.color = '';
 }
 
 function fetchWordData() {
@@ -115,11 +129,14 @@ function placeLetters() {
     letterArray = [];
     const letters = currentWordHindi.split('');
     
+    const minY = 100;
+    const maxY = boardHeight - letterHeight - 100;
+    
     for (let i = 0; i < letters.length; i++) {
         letterArray.push({
             char: letters[i],
             x: boardWidth + i * (letterWidth + letterSpacing),
-            y: Math.random() * (boardHeight - letterHeight - 100) + 50,
+            y: Math.random() * (maxY - minY) + minY,
             color: getRandomColor()
         });
     }
@@ -131,34 +148,44 @@ function getRandomColor() {
 }
 
 function playAudio(audioUrl) {
-    fetch(audioUrl)
-        .then(response => response.arrayBuffer())
-        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-        .then(audioBuffer => {
-            const source = audioContext.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(audioContext.destination);
-            source.start();
-        });
+    if (audioContext) {
+        fetch(audioUrl)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                source.start();
+            });
+    } else {
+        console.log('Audio playback not available');
+    }
 }
 
 function startGame() {
+    if (gameStarted) return;
+    
     document.getElementById('start-screen').style.display = 'none';
     gameStarted = true;
     gameOver = false;
     velocity = 0;
     playerY = boardHeight / 2;
     lastTime = 0;
+    document.querySelector('footer a').style.color = 'black';
     requestAnimationFrame(gameLoop);
 }
 
 function updateLetters() {
+    const minY = 100;
+    const maxY = boardHeight - letterHeight - 100;
+
     letterArray.forEach(letter => {
         letter.x -= scrollSpeed;
         
         if (letter.x + letterWidth < 0) {
             letter.x = boardWidth;
-            letter.y = Math.random() * (boardHeight - letterHeight - 100) + 50;
+            letter.y = Math.random() * (maxY - minY) + minY;
         }
     });
 }
@@ -216,7 +243,7 @@ function gameLoop(currentTime) {
             context.fillRect(letter.x, letter.y, letterWidth, letterHeight);
             
             context.fillStyle = "white";
-            context.font = "bold 24px Arial";
+            context.font = "bold 36px Arial";
             context.textAlign = "center";
             context.textBaseline = "middle";
             context.fillText(letter.char, letter.x + letterWidth/2, letter.y + letterHeight/2);
@@ -242,17 +269,44 @@ function completeWord() {
     document.getElementById('game-over-message').textContent = `Word Completed: ${currentWordHindi} (${currentWord})`;
     document.getElementById('collected-word').textContent = `Collected: ${collectedLetters.join("")}`;
     document.getElementById('try-again-button').textContent = 'Next Word';
+    
+    const completedWordImage = document.getElementById('completed-word-image');
+    const imagePath = `/imagefiles/${currentWord.toLowerCase()}.jpg`;
+    
+    console.log(`Attempting to load image: ${imagePath}`);
+    
+    completedWordImage.onerror = function() {
+        console.error(`Failed to load image: ${imagePath}`);
+        this.src = '/imagefiles/default.jpg';
+    };
+    completedWordImage.onload = function() {
+        console.log(`Successfully loaded image: ${imagePath}`);
+    };
+    completedWordImage.src = imagePath;
+    completedWordImage.style.display = 'block';
+    
     document.getElementById('game-over-screen').style.display = 'flex';
 
     setTimeout(() => {
         playAudio(`${apiBaseUrl}/audio?word=${encodeURIComponent(currentWord)}`);
     }, 2000);
+
+    setTimeout(() => {
+        resetGame();
+    }, 6000);
 }
 
 function incorrectLetter() {
     gameOver = true;
     document.getElementById('game-over-message').textContent = 'Wrong Letter! Try again!';
     document.getElementById('try-again-button').textContent = 'Try Again';
+    const errorImage = document.getElementById('completed-word-image');
+    errorImage.onerror = function() {
+        console.error('Failed to load try again image');
+        this.src = '/imagefiles/default.jpg';
+    };
+    errorImage.src = '/imagefiles/tryagain.jpg';
+    errorImage.style.display = 'block';
     document.getElementById('game-over-screen').style.display = 'flex';
 }
 
@@ -261,19 +315,27 @@ function endGame() {
     document.getElementById('game-over-message').textContent = 'Game Over!';
     document.getElementById('collected-word').textContent = `Collected: ${collectedLetters.join("")}`;
     document.getElementById('try-again-button').textContent = 'Try Again';
+    const errorImage = document.getElementById('completed-word-image');
+    errorImage.onerror = function() {
+        console.error('Failed to load try again image');
+        this.src = '/imagefiles/default.jpg';
+    };
+    errorImage.src = '/imagefiles/tryagain.jpg';
+    errorImage.style.display = 'block';
     document.getElementById('game-over-screen').style.display = 'flex';
 }
 
 function resetGame() {
     document.getElementById('game-over-screen').style.display = 'none';
+    document.getElementById('completed-word-image').style.display = 'none';
     selectNewWord();
     placeLetters();
     gameOver = false;
-    gameStarted = true;
+    gameStarted = false;
     playerY = boardHeight / 2;
     velocity = 0;
     lastTime = 0;
-    requestAnimationFrame(gameLoop);
+    document.getElementById('start-screen').style.display = 'flex';
 }
 
 function handleClick() {
@@ -284,3 +346,10 @@ function handleClick() {
         velocity = lift;
     }
 }
+
+if (typeof window !== 'undefined') {
+    window.onload = init;
+} else {
+    init();
+}
+
