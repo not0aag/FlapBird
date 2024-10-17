@@ -39,6 +39,8 @@ const frameInterval = 1000 / targetFPS;
 
 let hindiWords = [];
 
+let animationFrameId;
+
 function initAudio() {
     if (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -86,7 +88,7 @@ function setupEventListeners() {
         console.error("Start button not found");
     }
     
-    document.getElementById('try-again-button').addEventListener('click', resetGame);
+    document.getElementById('try-again-button').addEventListener('click', restartGame);
     document.getElementById('back-to-menu').addEventListener('click', backToMenu);
     document.getElementById('back-to-menu-gameover').addEventListener('click', backToMenu);
 }
@@ -173,7 +175,8 @@ function startGame() {
     playerY = boardHeight / 2;
     lastTime = 0;
     document.querySelector('footer a').style.color = 'black';
-    requestAnimationFrame(gameLoop);
+    cancelAnimationFrame(animationFrameId);
+    gameLoop();
 }
 
 function updateLetters() {
@@ -214,7 +217,10 @@ function checkCollisions() {
 }
 
 function gameLoop(currentTime) {
-    if (!gameStarted) return;
+    if (!gameStarted || gameOver) {
+        cancelAnimationFrame(animationFrameId);
+        return;
+    }
 
     if (!lastTime) lastTime = currentTime;
     const deltaTime = currentTime - lastTime;
@@ -222,16 +228,14 @@ function gameLoop(currentTime) {
     if (deltaTime >= frameInterval) {
         lastTime = currentTime - (deltaTime % frameInterval);
 
-        if (!gameOver) {
-            velocity += gravity;
-            playerY += velocity;
-            updateLetters();
-            checkCollisions();
+        velocity += gravity;
+        playerY += velocity;
+        updateLetters();
+        checkCollisions();
 
-            if (playerY > boardHeight - playerHeight || playerY < 0) {
-                endGame();
-                return;
-            }
+        if (playerY > boardHeight - playerHeight || playerY < 0) {
+            endGame();
+            return;
         }
 
         context.clearRect(0, 0, boardWidth, boardHeight);
@@ -260,11 +264,12 @@ function gameLoop(currentTime) {
         context.fillText(`English: ${currentWord}`, 10, 120);
     }
 
-    requestAnimationFrame(gameLoop);
+    animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 function completeWord() {
     gameOver = true;
+    cancelAnimationFrame(animationFrameId);
     
     document.getElementById('game-over-message').textContent = `Word Completed: ${currentWordHindi} (${currentWord})`;
     document.getElementById('collected-word').textContent = `Collected: ${collectedLetters.join("")}`;
@@ -290,14 +295,11 @@ function completeWord() {
     setTimeout(() => {
         playAudio(`${apiBaseUrl}/audio?word=${encodeURIComponent(currentWord)}`);
     }, 2000);
-
-    setTimeout(() => {
-        resetGame();
-    }, 6000);
 }
 
 function incorrectLetter() {
     gameOver = true;
+    cancelAnimationFrame(animationFrameId);
     document.getElementById('game-over-message').textContent = 'Wrong Letter! Try again!';
     document.getElementById('try-again-button').textContent = 'Try Again';
     const errorImage = document.getElementById('completed-word-image');
@@ -312,6 +314,7 @@ function incorrectLetter() {
 
 function endGame() {
     gameOver = true;
+    cancelAnimationFrame(animationFrameId);
     document.getElementById('game-over-message').textContent = 'Game Over!';
     document.getElementById('collected-word').textContent = `Collected: ${collectedLetters.join("")}`;
     document.getElementById('try-again-button').textContent = 'Try Again';
@@ -335,7 +338,12 @@ function resetGame() {
     playerY = boardHeight / 2;
     velocity = 0;
     lastTime = 0;
-    document.getElementById('start-screen').style.display = 'flex';
+    cancelAnimationFrame(animationFrameId);
+}
+
+function restartGame() {
+    resetGame();
+    startGame();
 }
 
 function handleClick() {
@@ -352,4 +360,3 @@ if (typeof window !== 'undefined') {
 } else {
     init();
 }
-
