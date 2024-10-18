@@ -297,7 +297,7 @@ function completeWord() {
   document.getElementById("try-again-button").textContent = "Next Word";
 
   const completedWordImage = document.getElementById("completed-word-image");
-  const imagePath = `./imagefiles/${currentWord.toLowerCase()}.jpg`;
+  const imagePath = `imagefiles/${currentWord.toLowerCase()}.jpg`;
 
   completedWordImage.onerror = function () {
     this.src = "./imagefiles/default.jpg";
