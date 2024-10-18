@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs").promises;
 const path = require("path");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -217,11 +219,13 @@ app.get("/audio-map", (req, res) => {
   res.json(audioFileMap);
 });
 
-async function startServer() {
-  await loadWordsData();
+loadWordsData();
+
+if (process.env.NODE_ENV !== "production") {
+  const port = process.env.PORT || 3001;
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
 }
 
-startServer();
+module.exports = app;
