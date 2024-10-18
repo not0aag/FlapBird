@@ -1,0 +1,29 @@
+{
+    "colors": [
+      {
+        "english": "red",
+        "hindi": "लाल",
+        "transliteration": "laal"
+      },
+      {
+        "english": "blue",
+        "hindi": "नीला",
+        "transliteration": "neela"
+      },
+      {
+        "english": "green",
+        "hindi": "हरा",
+        "transliteration": "hara"
+      },
+      {
+        "english": "yellow",
+        "hindi": "पीला",
+        "transliteration": "peela"
+      },
+      {
+        "english": "black",
+        "hindi": "काला",
+        "transliteration": "kaala"
+      }
+    ]
+  }

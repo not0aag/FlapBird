@@ -1,0 +1,29 @@
+{
+  "fruits": [
+    {
+      "english": "apple",
+      "hindi": "सेवफलम्",
+      "transliteration": "sevaphalam"
+    },
+    {
+      "english": "banana",
+      "hindi": "कदली",
+      "transliteration": "kadalī"
+    },
+    {
+      "english": "orange",
+      "hindi": "नारङ्गम्",
+      "transliteration": "nāraṅgam"
+    },
+    {
+      "english": "mango",
+      "hindi": "आम्रम्",
+      "transliteration": "āmram"
+    },
+    {
+      "english": "grape",
+      "hindi": "द्राक्षा",
+      "transliteration": "drākṣā"
+    }
+  ]
+}

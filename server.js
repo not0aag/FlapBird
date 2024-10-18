@@ -85,7 +85,7 @@ const audioFileMap = {
 
 // Load words data from the public/data directory
 async function loadWordsData() {
-  const dataDir = path.join(__dirname, "public", "data");
+  const dataDir = path.join(__dirname, "public", "data"); // Update to use the public directory
   try {
     const files = await fs.readdir(dataDir);
     for (const file of files) {
