@@ -10,9 +10,6 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 
-// Serve static files from the public directory (includes data and audiofiles)
-app.use(express.static(path.join(__dirname, "public")));
-
 let wordsCache = {
   fruits: [],
   vegetables: [],
@@ -83,9 +80,8 @@ const audioFileMap = {
   "्": "halant",
 };
 
-// Load words data from the public/data directory
 async function loadWordsData() {
-  const dataDir = path.join(__dirname, "public", "data"); // Update to use the public directory
+  const dataDir = path.join(__dirname, "public", "data");
   try {
     const files = await fs.readdir(dataDir);
     for (const file of files) {
@@ -111,7 +107,6 @@ async function loadWordsData() {
   }
 }
 
-// Endpoint to get words by category
 app.get("/words", (req, res) => {
   const category = req.query.category;
   if (category && wordsCache[category]) {
@@ -121,7 +116,6 @@ app.get("/words", (req, res) => {
   }
 });
 
-// Serve audio files based on the character or word
 app.get("/audio", async (req, res) => {
   const char = req.query.char;
   const word = req.query.word;
@@ -191,7 +185,6 @@ app.get("/audio", async (req, res) => {
   }
 });
 
-// Endpoint to list available categories
 app.get("/categories", (req, res) => {
   const categories = Object.keys(wordsCache).filter(
     (category) => wordsCache[category].length > 0
@@ -199,14 +192,55 @@ app.get("/categories", (req, res) => {
   res.json(categories);
 });
 
-// Endpoint to get the audio file map
 app.get("/audio-map", (req, res) => {
   res.json(audioFileMap);
 });
 
-// Load data on server start
-loadWordsData();
+async function setupPersistentStorage() {
+  const PERSISTENT_STORAGE = process.env.PERSISTENT_STORAGE_PATH || '/data';
+  
+  const directories = {
+    images: {
+      source: path.join(__dirname, 'public', 'imagefiles'),
+      target: path.join(PERSISTENT_STORAGE, 'imagefiles')
+    },
+    audio: {
+      source: path.join(__dirname, 'public', 'audiofiles'),
+      target: path.join(PERSISTENT_STORAGE, 'audiofiles')
+    }
+  };
+  try {
+    await fs.mkdir(PERSISTENT_STORAGE, { recursive: true });
+    for (const [key, dir] of Object.entries(directories)) {
+      await fs.mkdir(dir.target, { recursive: true });
+      const files = await fs.readdir(dir.source);
+      for (const file of files) {
+        const sourcePath = path.join(dir.source, file);
+        const targetPath = path.join(dir.target, file);
+        try {
+          await fs.access(targetPath);
+        } catch {
+          await fs.copyFile(sourcePath, targetPath);
+          console.log(`Copied ${file} to persistent storage`);
+        }
+      }
+    }
+    app.use('/imagefiles', express.static(directories.images.target));
+    app.use('/audiofiles', express.static(directories.audio.target));
+    console.log('Persistent storage setup complete');
+  } catch (error) {
+    console.error('Error setting up persistent storage:', error);
+    throw error;
+  }
+}
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+async function initializeServer() {
+  await loadWordsData();
+  await setupPersistentStorage();
+  
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
+
+initializeServer().catch(console.error);
