@@ -32,7 +32,7 @@ async function loadWordsData() {
   const categories = ['fruits', 'vegetables', 'animals', 'colors'];
   for (const category of categories) {
     try {
-      const filePath = path.join(__dirname, 'public', `${category}.json`);
+      const filePath = path.join(__dirname, 'public', 'data', `${category}.json`);
       const data = await fs.readFile(filePath, 'utf8');
       const jsonData = JSON.parse(data);
       wordsCache[category] = jsonData[category] || [];
