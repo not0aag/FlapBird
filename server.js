@@ -8,6 +8,14 @@ const port = 3000;
 
 app.use(cors());
 app.use(express.static('public'));
+app.use('/audiofiles', express.static(path.join(__dirname, 'audiofiles'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.mp3')) {
+      res.set('Content-Type', 'audio/mpeg');
+      res.set('Accept-Ranges', 'bytes');
+    }
+  }
+}));
 
 let wordsCache = {
   fruits: [],
@@ -23,10 +31,13 @@ const audioFileMap = {
   'थ': '30.tha', 'द': '31.da', 'ध': '32.dha', 'न': '33.na', 'प': '34.pa', 'फ': '35.pha', 'ब': '36.ba', 'भ': '37.bha',
   'म': '38.ma', 'य': '39.ya', 'र': '40.ra', 'ल': '41.la', 'व': '42.wa', 'श': '43.sha', 'ष': '44.shha', 'स': '45.sa',
   'ह': '46.ha', 'क्ष': '47.ksh', 'त्र': '48.tra', 'ज्ञ': '49.gya', 'श्र': '50.sra', 'ं': '11.un', 'ः': '12.uh', 'ृ': '13.ri',
-  'ा': '2.aa', 'ि': '3.i.', 'ी': '4.ii', 'ु': '5.u', 'ू': '6.oo', 'े': '7.e', 'ै': '8.ai', 'ो': '9.o', 'ौ': '10.au'
+  'ा': 'matra_aa', 'ि': 'matra_i', 'ी': 'matra_ii', 'ु': 'matra_u', 'ू': 'matra_uu', 'े': 'matra_e', 'ै': 'matra_ai', 'ो': 'matra_o', 'ौ': 'matra_au',
+  '्': 'halant'
 };
 
-const combinedWordsAudioPath = 'C:\\Users\\alena\\flappysanskrit\\FlapBird\\audiofiles\\combinedwords\\';
+const combinedWordsAudioPath = path.join(__dirname, 'audiofiles', 'combinedwords');
+const singleCharAudioPath = path.join(__dirname, 'audiofiles');
+const matraAudioPath = path.join(__dirname, 'audiofiles', 'combinedwords', 'consonants');
 
 async function loadWordsData() {
   const dataDir = path.join(__dirname, 'data');
@@ -40,7 +51,6 @@ async function loadWordsData() {
           const data = await fs.readFile(filePath, 'utf8');
           const jsonData = JSON.parse(data);
           wordsCache[category] = jsonData[category] || [];
-          console.log(`Loaded ${category}: ${wordsCache[category].length} words`);
         } catch (error) {
           console.error(`Error loading ${file}:`, error);
           wordsCache[category] = [];
@@ -67,10 +77,14 @@ app.get('/audio', async (req, res) => {
   
   try {
     if (word) {
-      const audioPath = path.join(combinedWordsAudioPath, `${word}.mp3`);
-      if (await fs.access(audioPath).then(() => true).catch(() => false)) {
+      const audioPath = path.join(__dirname, 'audiofiles', 'combinedwords', `${word}.mp3`);
+      try {
+        await fs.access(audioPath);
+        res.set('Content-Type', 'audio/mpeg');
+        res.set('Accept-Ranges', 'bytes');
         res.sendFile(audioPath);
-      } else {
+        return;
+      } catch {
         const audioFiles = [];
         for (const char of word) {
           if (audioFileMap[char]) {
@@ -79,15 +93,33 @@ app.get('/audio', async (req, res) => {
         }
         res.json({ files: audioFiles });
       }
-    } else if (char && audioFileMap[char]) {
-      const audioFileName = `${audioFileMap[char]}.mp3`;
-      const audioPath = path.join(__dirname, 'audiofiles', audioFileName);
-      res.sendFile(audioPath);
+    } else if (char) {
+      let audioFileName = audioFileMap[char] ? `${audioFileMap[char]}.mp3` : null;
+      if (!audioFileName) {
+        res.status(404).json({ error: 'Audio file not found for the given character' });
+        return;
+      }
+      
+      let audioPath;
+      if (['ा', 'ि', 'ी', 'ु', 'ू', 'े', 'ै', 'ो', 'ौ', '्'].includes(char)) {
+        audioPath = path.join(matraAudioPath, audioFileName);
+      } else {
+        audioPath = path.join(singleCharAudioPath, audioFileName);
+      }
+      
+      try {
+        await fs.access(audioPath);
+        res.set('Content-Type', 'audio/mpeg');
+        res.set('Accept-Ranges', 'bytes');
+        res.sendFile(audioPath);
+      } catch (error) {
+        res.status(404).json({ error: `Audio file not found: ${audioPath}`});
+      }
     } else {
       res.status(400).json({ error: 'Invalid character or word' });
     }
   } catch (error) {
-    console.error('Error serving audio:', error);
+    console.error('Error processing audio:', error);
     res.status(500).json({ error: 'Error processing audio' });
   }
 });
@@ -97,11 +129,14 @@ app.get('/categories', (req, res) => {
   res.json(categories);
 });
 
+app.get('/audio-map', (req, res) => {
+  res.json(audioFileMap);
+});
+
 async function startServer() {
   await loadWordsData();
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-    console.log('Loaded categories:', Object.keys(wordsCache).filter(category => wordsCache[category].length > 0));
   });
 }
 

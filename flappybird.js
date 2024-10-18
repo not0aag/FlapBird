@@ -84,8 +84,6 @@ function setupEventListeners() {
     const startButton = document.getElementById('start-button');
     if (startButton) {
         startButton.addEventListener('click', startGame);
-    } else {
-        console.error("Start button not found");
     }
     
     document.getElementById('try-again-button').addEventListener('click', restartGame);
@@ -131,8 +129,8 @@ function placeLetters() {
     letterArray = [];
     const letters = currentWordHindi.split('');
     
-    const minY = 100;
-    const maxY = boardHeight - letterHeight - 100;
+    const minY = boardHeight * 0.3;
+    const maxY = boardHeight * 0.7;
     
     for (let i = 0; i < letters.length; i++) {
         letterArray.push({
@@ -160,8 +158,6 @@ function playAudio(audioUrl) {
                 source.connect(audioContext.destination);
                 source.start();
             });
-    } else {
-        console.log('Audio playback not available');
     }
 }
 
@@ -180,8 +176,8 @@ function startGame() {
 }
 
 function updateLetters() {
-    const minY = 100;
-    const maxY = boardHeight - letterHeight - 100;
+    const minY = boardHeight * 0.3;
+    const maxY = boardHeight * 0.7;
 
     letterArray.forEach(letter => {
         letter.x -= scrollSpeed;
@@ -278,14 +274,8 @@ function completeWord() {
     const completedWordImage = document.getElementById('completed-word-image');
     const imagePath = `/imagefiles/${currentWord.toLowerCase()}.jpg`;
     
-    console.log(`Attempting to load image: ${imagePath}`);
-    
     completedWordImage.onerror = function() {
-        console.error(`Failed to load image: ${imagePath}`);
         this.src = '/imagefiles/default.jpg';
-    };
-    completedWordImage.onload = function() {
-        console.log(`Successfully loaded image: ${imagePath}`);
     };
     completedWordImage.src = imagePath;
     completedWordImage.style.display = 'block';
@@ -304,7 +294,6 @@ function incorrectLetter() {
     document.getElementById('try-again-button').textContent = 'Try Again';
     const errorImage = document.getElementById('completed-word-image');
     errorImage.onerror = function() {
-        console.error('Failed to load try again image');
         this.src = '/imagefiles/default.jpg';
     };
     errorImage.src = '/imagefiles/tryagain.jpg';
@@ -320,7 +309,6 @@ function endGame() {
     document.getElementById('try-again-button').textContent = 'Try Again';
     const errorImage = document.getElementById('completed-word-image');
     errorImage.onerror = function() {
-        console.error('Failed to load try again image');
         this.src = '/imagefiles/default.jpg';
     };
     errorImage.src = '/imagefiles/tryagain.jpg';
