@@ -31,7 +31,8 @@ let letterArray = [];
 
 let currentCategory = "";
 
-let baseURL = "https://flappy-bird-snowy-delta.vercel.app";
+const baseUrl = window.location.origin;
+console.log(baseUrl);
 
 let lastTime = 0;
 const targetFPS = 60;
@@ -108,7 +109,7 @@ function backToMenu() {
 }
 
 function fetchWordData() {
-  fetch(`${baseURL}/words?category=${currentCategory}`)
+  fetch(`${baseUrl}/words?category=${currentCategory}`)
     .then((response) => response.json())
     .then((data) => {
       hindiWords = data;
@@ -216,7 +217,7 @@ function checkCollisions() {
     ) {
       if (letter.char === currentWordHindi[collectedLetters.length]) {
         collectedLetters.push(letter.char);
-        playAudio(`${baseURL}/audio?char=${encodeURIComponent(letter.char)}`);
+        playAudio(`${baseUrl}/audio?char=${encodeURIComponent(letter.char)}`);
         letterArray.splice(index, 1);
 
         if (collectedLetters.length === currentWordHindi.length) {
