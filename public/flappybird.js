@@ -2,50 +2,36 @@ let board;
 let boardWidth = 800;
 let boardHeight = 900;
 let context;
-
 let playerWidth = 68;
 let playerHeight = 48;
 let playerX = boardWidth / 8;
 let playerY = boardHeight / 2;
 let playerImg;
-
 let gravity = 0.4;
 let lift = -7;
 let velocity = 0;
-
 let gameStarted = false;
 let gameOver = false;
-
 let scrollSpeed = 2;
-
 let currentWord = "";
 let currentWordHindi = "";
 let collectedLetters = [];
 let letterWidth = 60;
 let letterHeight = 60;
 let letterSpacing = 150;
-
 let audioContext;
-
 let letterArray = [];
-
 let currentCategory = "";
-
 const baseUrl = window.location.origin;
-
 let lastTime = 0;
 const targetFPS = 60;
 const frameInterval = 1000 / targetFPS;
-
 let hindiWords = [];
-
 let animationFrameId;
 
 function initAudio() {
   if (typeof window !== "undefined" && (window.AudioContext || window.webkitAudioContext)) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  } else {
-    console.log("AudioContext not available");
   }
 }
 
@@ -57,10 +43,8 @@ function init() {
       board.height = boardHeight;
       context = board.getContext("2d");
     }
-
     playerImg = new Image();
     playerImg.src = `${baseUrl}/flappybird.png`;
-
     setupEventListeners();
   }
   initAudio();
@@ -68,7 +52,6 @@ function init() {
 
 function setupEventListeners() {
   if (typeof document === "undefined") return;
-
   document.querySelectorAll(".category-btn").forEach((button) => {
     button.addEventListener("click", () => {
       currentCategory = button.dataset.category;
@@ -77,15 +60,12 @@ function setupEventListeners() {
       fetchWordData();
     });
   });
-
   board.addEventListener("click", handleClick);
   document.addEventListener("keydown", handleKeyDown);
-
   const startButton = document.getElementById("start-button");
   if (startButton) {
     startButton.addEventListener("click", startGame);
   }
-
   document.getElementById("try-again-button").addEventListener("click", restartGame);
   document.getElementById("back-to-menu").addEventListener("click", backToMenu);
   document.getElementById("back-to-menu-gameover").addEventListener("click", backToMenu);
@@ -108,6 +88,10 @@ function fetchWordData() {
       selectNewWord();
       placeLetters();
       document.getElementById("start-screen").style.display = "flex";
+    })
+    .catch(error => {
+      console.error('Error fetching word data:', error);
+      handleMissingData();
     });
 }
 
@@ -130,7 +114,6 @@ function placeLetters() {
   const letters = currentWordHindi.split("");
   const minY = boardHeight * 0.3;
   const maxY = boardHeight * 0.7;
-
   for (let i = 0; i < letters.length; i++) {
     letterArray.push({
       char: letters[i],
@@ -147,16 +130,38 @@ function getRandomColor() {
 }
 
 function playAudio(audioUrl) {
+  if (!audioContext) return;
+  fetch(audioUrl)
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.arrayBuffer();
+    })
+    .then(arrayBuffer => {
+      if (arrayBuffer.byteLength === 0) throw new Error('Empty audio buffer');
+      return audioContext.decodeAudioData(arrayBuffer);
+    })
+    .then(audioBuffer => {
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      source.start();
+    })
+    .catch(error => {
+      console.warn(`Audio playback failed: ${error.message}`);
+      handleMissingAudio();
+    });
+}
+
+function handleMissingAudio() {
   if (audioContext) {
-    fetch(audioUrl)
-      .then((response) => response.arrayBuffer())
-      .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
-      .then((audioBuffer) => {
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(audioContext.destination);
-        source.start();
-      });
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1);
   }
 }
 
@@ -187,8 +192,10 @@ function updateLetters() {
 
 function checkCollisions() {
   letterArray.forEach((letter, index) => {
-    if (playerX < letter.x + letterWidth && playerX + playerWidth > letter.x && 
-        playerY < letter.y + letterHeight && playerY + playerHeight > letter.y) {
+    if (playerX < letter.x + letterWidth && 
+        playerX + playerWidth > letter.x && 
+        playerY < letter.y + letterHeight && 
+        playerY + playerHeight > letter.y) {
       if (letter.char === currentWordHindi[collectedLetters.length]) {
         collectedLetters.push(letter.char);
         playAudio(`${baseUrl}/audio?char=${encodeURIComponent(letter.char)}`);
@@ -208,25 +215,20 @@ function gameLoop(currentTime) {
     cancelAnimationFrame(animationFrameId);
     return;
   }
-
   if (!lastTime) lastTime = currentTime;
   const deltaTime = currentTime - lastTime;
-
   if (deltaTime >= frameInterval) {
     lastTime = currentTime - (deltaTime % frameInterval);
     velocity += gravity;
     playerY += velocity;
     updateLetters();
     checkCollisions();
-
     if (playerY > boardHeight - playerHeight || playerY < 0) {
       endGame();
       return;
     }
-
     context.clearRect(0, 0, boardWidth, boardHeight);
     context.drawImage(playerImg, playerX, playerY, playerWidth, playerHeight);
-
     letterArray.forEach((letter) => {
       context.fillStyle = letter.color;
       context.fillRect(letter.x, letter.y, letterWidth, letterHeight);
@@ -236,7 +238,6 @@ function gameLoop(currentTime) {
       context.textBaseline = "middle";
       context.fillText(letter.char, letter.x + letterWidth / 2, letter.y + letterHeight / 2);
     });
-
     context.textAlign = "left";
     context.textBaseline = "alphabetic";
     context.font = "24px Arial";
@@ -246,7 +247,6 @@ function gameLoop(currentTime) {
     context.fillText(`Collected: ${collectedLetters.join("")}`, 10, 90);
     context.fillText(`English: ${currentWord}`, 10, 120);
   }
-
   animationFrameId = requestAnimationFrame(gameLoop);
 }
 
@@ -256,7 +256,6 @@ function completeWord() {
   document.getElementById("game-over-message").textContent = `Word Completed: ${currentWordHindi} (${currentWord})`;
   document.getElementById("collected-word").textContent = `Collected: ${collectedLetters.join("")}`;
   document.getElementById("try-again-button").textContent = "Next Word";
-
   const completedWordImage = document.getElementById("completed-word-image");
   completedWordImage.src = `${baseUrl}/imagefiles/${currentWord}.jpg`;
   completedWordImage.onerror = function() {
@@ -264,15 +263,8 @@ function completeWord() {
   };
   completedWordImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
-
   setTimeout(() => {
-    fetch(`${baseUrl}/audio?word=${encodeURIComponent(currentWord)}`)
-      .then(response => {
-        if (response.ok) {
-          playAudio(`${baseUrl}/audio?word=${encodeURIComponent(currentWord)}`);
-        }
-      })
-      .catch(error => console.error('Error playing word audio:', error));
+    playAudio(`${baseUrl}/audio?word=${encodeURIComponent(currentWord)}`);
   }, 2000);
 }
 
