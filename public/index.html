@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hindi Flappy Bird</title>
+    <link rel="stylesheet" href="./flappybird.css">
+</head>
+<body>
+    <div id="welcome-screen">
+        <h1>Welcome to Hindi Flappy Bird</h1>
+        <p>Choose a category to start learning Hindi words:</p>
+        <div class="category-buttons">
+            <button class="category-btn" data-category="animals">Animals</button>
+            <button class="category-btn" data-category="colors">Colors</button>
+            <button class="category-btn" data-category="vegetables">Vegetables</button>
+            <button class="category-btn" data-category="fruits">Fruits</button>
+        </div>
+    </div>
+    <div id="game-container" style="display: none;">
+        <canvas id="board"></canvas>
+        <div id="score"></div>
+        <div id="current-word"></div>
+        <div id="start-screen">
+            <h1>Hindi Flappy Bird</h1>
+            <p>Press SPACE or Click to fly</p>
+            <button id="start-button">Start Game</button>
+            <button id="back-to-menu" class="secondary-button">Back to Menu</button>
+        </div>
+        <div id="game-over-screen">
+            <h2 id="game-over-message"></h2>
+            <div id="collected-word"></div>
+            <div id="image-container">
+                <img id="completed-word-image" alt="Completed Word">
+            </div>
+            <button id="try-again-button">Try Again</button>
+            <button id="back-to-menu-gameover" class="secondary-button">Back to Menu</button>
+        </div>
+    </div>
+    <footer>
+        Designed and created by <a href="https://github.com/not0aag" target="_blank">@not0aag</a>
+    </footer>
+    <script src="./flappybird.js"></script>
+</body>
+</html>
