@@ -207,11 +207,6 @@ app.get("/audio-map", (req, res) => {
 // Load data on server start
 loadWordsData();
 
-// Start the server if not in production (Vercel uses serverless functions, so this won't run in production)
-if (process.env.NODE_ENV !== "production") {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-}
-
-module.exports = app;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
