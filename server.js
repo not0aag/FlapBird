@@ -10,23 +10,8 @@ const port = process.env.PORT || 3001;
 
 app.use(cors());
 
+// Serve static files from the public directory (includes data and audiofiles)
 app.use(express.static(path.join(__dirname, "public")));
-
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "index.html"));
-// });
-
-app.use(
-  "/audiofiles",
-  express.static(path.join(__dirname, "audiofiles"), {
-    setHeaders: (res, path) => {
-      if (path.endsWith(".mp3")) {
-        res.set("Content-Type", "audio/mpeg");
-        res.set("Accept-Ranges", "bytes");
-      }
-    },
-  })
-);
 
 let wordsCache = {
   fruits: [],
@@ -98,21 +83,9 @@ const audioFileMap = {
   "्": "halant",
 };
 
-const combinedWordsAudioPath = path.join(
-  __dirname,
-  "audiofiles",
-  "combinedwords"
-);
-const singleCharAudioPath = path.join(__dirname, "audiofiles");
-const matraAudioPath = path.join(
-  __dirname,
-  "audiofiles",
-  "combinedwords",
-  "consonants"
-);
-
+// Load words data from the public/data directory
 async function loadWordsData() {
-  const dataDir = path.join(__dirname, "data");
+  const dataDir = path.join(__dirname, "public", "data");
   try {
     const files = await fs.readdir(dataDir);
     for (const file of files) {
@@ -138,6 +111,7 @@ async function loadWordsData() {
   }
 }
 
+// Endpoint to get words by category
 app.get("/words", (req, res) => {
   const category = req.query.category;
   if (category && wordsCache[category]) {
@@ -147,6 +121,7 @@ app.get("/words", (req, res) => {
   }
 });
 
+// Serve audio files based on the character or word
 app.get("/audio", async (req, res) => {
   const char = req.query.char;
   const word = req.query.word;
@@ -155,6 +130,7 @@ app.get("/audio", async (req, res) => {
     if (word) {
       const audioPath = path.join(
         __dirname,
+        "public",
         "audiofiles",
         "combinedwords",
         `${word}.mp3`
@@ -187,9 +163,16 @@ app.get("/audio", async (req, res) => {
 
       let audioPath;
       if (["ा", "ि", "ी", "ु", "ू", "े", "ै", "ो", "ौ", "्"].includes(char)) {
-        audioPath = path.join(matraAudioPath, audioFileName);
+        audioPath = path.join(
+          __dirname,
+          "public",
+          "audiofiles",
+          "combinedwords",
+          "consonants",
+          audioFileName
+        );
       } else {
-        audioPath = path.join(singleCharAudioPath, audioFileName);
+        audioPath = path.join(__dirname, "public", "audiofiles", audioFileName);
       }
 
       try {
@@ -208,6 +191,7 @@ app.get("/audio", async (req, res) => {
   }
 });
 
+// Endpoint to list available categories
 app.get("/categories", (req, res) => {
   const categories = Object.keys(wordsCache).filter(
     (category) => wordsCache[category].length > 0
@@ -215,14 +199,16 @@ app.get("/categories", (req, res) => {
   res.json(categories);
 });
 
+// Endpoint to get the audio file map
 app.get("/audio-map", (req, res) => {
   res.json(audioFileMap);
 });
 
+// Load data on server start
 loadWordsData();
 
+// Start the server if not in production (Vercel uses serverless functions, so this won't run in production)
 if (process.env.NODE_ENV !== "production") {
-  const port = process.env.PORT || 3001;
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
