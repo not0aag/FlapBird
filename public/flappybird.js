@@ -163,7 +163,9 @@ function completeWord() {
   document.getElementById("try-again-button").textContent = "Next Word";
   
   const completedWordImage = document.getElementById("completed-word-image");
-  const imagePath = `/imagefiles/${currentWord.toLowerCase()}.jpg`;
+  const firstLetter = currentWord.charAt(0).toUpperCase();
+  const restOfWord = currentWord.slice(1).toLowerCase();
+  const imagePath = `/imagefiles/${firstLetter}${restOfWord}.jpg`;
   
   fetch(imagePath)
     .then(response => {
