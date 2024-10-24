@@ -3,19 +3,21 @@ const cors = require("cors");
 const fs = require("fs").promises;
 const path = require("path");
 const dotenv = require("dotenv");
-dotenv.config();
 
+dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.static("public"));
+app.use("/imagefiles", express.static(path.join(__dirname, "imagefiles")));
+app.use("/audiofiles", express.static(path.join(__dirname, "audiofiles")));
 
 const wordsCache = {
   fruits: [],
   vegetables: [],
   animals: [],
-  colors: [],
+  colors: []
 };
 
 const audioFileMap = {
@@ -33,7 +35,7 @@ async function loadWordsData() {
   try {
     const categories = ["fruits", "vegetables", "animals", "colors"];
     for (const category of categories) {
-      const filePath = path.join(__dirname, "public", "data", `${category}.json`);
+      const filePath = path.join(__dirname, "data", `${category}.json`);
       const data = await fs.readFile(filePath, "utf8");
       wordsCache[category] = JSON.parse(data)[category] || [];
     }
@@ -42,7 +44,7 @@ async function loadWordsData() {
   }
 }
 
-app.get("/words", (req, res) => {
+app.get("/api/words", (req, res) => {
   const category = req.query.category;
   if (category && wordsCache[category]) {
     res.json(wordsCache[category]);
@@ -51,12 +53,12 @@ app.get("/words", (req, res) => {
   }
 });
 
-app.get("/audio", async (req, res) => {
+app.get("/api/audio", async (req, res) => {
   const { char, word } = req.query;
   
   try {
     if (word) {
-      const audioPath = path.join(__dirname, "public", "audiofiles", "combinedwords", `${word}.mp3`);
+      const audioPath = path.join(__dirname, "audiofiles", "combinedwords", `${word.toLowerCase()}.mp3`);
       try {
         await fs.access(audioPath);
         res.sendFile(audioPath);
@@ -72,9 +74,9 @@ app.get("/audio", async (req, res) => {
 
       let audioPath;
       if (["ा", "ि", "ी", "ु", "ू", "े", "ै", "ो", "ौ", "्"].includes(char)) {
-        audioPath = path.join(__dirname, "public", "audiofiles", "combinedwords", "consonants", `${fileName}.mp3`);
+        audioPath = path.join(__dirname, "audiofiles", "combinedwords", "consonants", `${fileName}.mp3`);
       } else {
-        audioPath = path.join(__dirname, "public", "audiofiles", `${fileName}.mp3`);
+        audioPath = path.join(__dirname, "audiofiles", `${fileName}.mp3`);
       }
 
       try {
@@ -91,7 +93,7 @@ app.get("/audio", async (req, res) => {
   }
 });
 
-app.get("/categories", (_, res) => {
+app.get("/api/categories", (_, res) => {
   res.json(Object.keys(wordsCache).filter(category => wordsCache[category].length > 0));
 });
 
