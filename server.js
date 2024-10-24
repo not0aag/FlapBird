@@ -56,7 +56,7 @@ app.get("/audio", async (req, res) => {
   
   try {
     if (word) {
-      const audioPath = path.join(__dirname, "public", "audio", "words", `${word}.mp3`);
+      const audioPath = path.join(__dirname, "public", "audiofiles", "combinedwords", `${word}.mp3`);
       try {
         await fs.access(audioPath);
         res.sendFile(audioPath);
@@ -70,7 +70,13 @@ app.get("/audio", async (req, res) => {
         return;
       }
 
-      const audioPath = path.join(__dirname, "public", "audio", "chars", `${fileName}.mp3`);
+      let audioPath;
+      if (["ा", "ि", "ी", "ु", "ू", "े", "ै", "ो", "ौ", "्"].includes(char)) {
+        audioPath = path.join(__dirname, "public", "audiofiles", "combinedwords", "consonants", `${fileName}.mp3`);
+      } else {
+        audioPath = path.join(__dirname, "public", "audiofiles", `${fileName}.mp3`);
+      }
+
       try {
         await fs.access(audioPath);
         res.sendFile(audioPath);
@@ -87,16 +93,6 @@ app.get("/audio", async (req, res) => {
 
 app.get("/categories", (_, res) => {
   res.json(Object.keys(wordsCache).filter(category => wordsCache[category].length > 0));
-});
-
-app.get("/images/:name", async (req, res) => {
-  const imagePath = path.join(__dirname, "public", "images", `${req.params.name}.jpg`);
-  try {
-    await fs.access(imagePath);
-    res.sendFile(imagePath);
-  } catch {
-    res.sendFile(path.join(__dirname, "public", "images", "default.jpg"));
-  }
 });
 
 loadWordsData();

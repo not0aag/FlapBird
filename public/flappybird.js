@@ -20,7 +20,7 @@ function init() {
   board.height = boardHeight;
   context = board.getContext("2d");
   playerImg = new Image();
-  playerImg.src = "/images/flappybird.png";
+  playerImg.src = "/imagefiles/flappybird.png";
   setupEventListeners();
 }
 
@@ -154,9 +154,42 @@ function checkCollisions() {
   });
 }
 
-async function playAudio(char) {
+function completeWord() {
+  gameOver = true;
+  document.getElementById("game-over-message").textContent = `Word Completed: ${currentWordHindi} (${currentWord})`;
+  document.getElementById("collected-word").textContent = `Collected: ${collectedLetters.join("")}`;
+  document.getElementById("try-again-button").textContent = "Next Word";
+  
+  const completedWordImage = document.getElementById("completed-word-image");
+  completedWordImage.src = `/imagefiles/${currentWord}.jpg`;
+  completedWordImage.onerror = () => {
+    completedWordImage.src = "/imagefiles/default.jpg";
+  };
+  completedWordImage.style.display = "block";
+  document.getElementById("game-over-screen").style.display = "flex";
+  
+  setTimeout(() => {
+    playAudio(currentWord, true);
+  }, 2000);
+}
+
+function incorrectLetter() {
+  gameOver = true;
+  document.getElementById("game-over-message").textContent = "Wrong Letter! Try again!";
+  document.getElementById("try-again-button").textContent = "Try Again";
+  const errorImage = document.getElementById("completed-word-image");
+  errorImage.src = "/imagefiles/tryagain.jpg";
+  errorImage.onerror = () => {
+    errorImage.src = "/imagefiles/default.jpg";
+  };
+  errorImage.style.display = "block";
+  document.getElementById("game-over-screen").style.display = "flex";
+}
+
+async function playAudio(input, isWord = false) {
   try {
-    const response = await fetch(`/audio?char=${encodeURIComponent(char)}`);
+    const queryParam = isWord ? "word" : "char";
+    const response = await fetch(`/audio?${queryParam}=${encodeURIComponent(input)}`);
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     const source = audioContext.createBufferSource();
@@ -168,23 +201,17 @@ async function playAudio(char) {
   }
 }
 
-function startGame() {
-  if (!gameStarted) {
-    document.getElementById("start-screen").style.display = "none";
-    gameStarted = true;
-    gameOver = false;
-    velocity = 0;
-    playerY = boardHeight / 2;
-    lastTime = 0;
-    gameLoop();
-  }
-}
-
 function endGame() {
   gameOver = true;
   document.getElementById("game-over-message").textContent = "Game Over!";
   document.getElementById("collected-word").textContent = `Collected: ${collectedLetters.join("")}`;
-  document.getElementById("completed-word-image").src = "/images/tryagain.jpg";
+  document.getElementById("try-again-button").textContent = "Try Again";
+  const errorImage = document.getElementById("completed-word-image");
+  errorImage.src = "/imagefiles/tryagain.jpg";
+  errorImage.onerror = () => {
+    errorImage.src = "/imagefiles/default.jpg";
+  };
+  errorImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
 }
 
