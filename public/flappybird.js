@@ -20,7 +20,10 @@ function init() {
   board.height = boardHeight;
   context = board.getContext("2d");
   playerImg = new Image();
-  playerImg.src = "imagefiles/flappybird.png";
+  playerImg.src = "/imagefiles/flappybird.png";
+  playerImg.onerror = () => {
+    playerImg.src = "/imagefiles/default.jpg";
+  };
   setupEventListeners();
 }
 
@@ -160,10 +163,20 @@ function completeWord() {
   document.getElementById("try-again-button").textContent = "Next Word";
   
   const completedWordImage = document.getElementById("completed-word-image");
-  completedWordImage.src = `imagefiles/${currentWord.toLowerCase()}.jpg`;
-  completedWordImage.onerror = () => {
-    completedWordImage.src = "imagefiles/default.jpg";
-  };
+  const imagePath = `/imagefiles/${currentWord.toLowerCase()}.jpg`;
+  
+  fetch(imagePath)
+    .then(response => {
+      if (response.ok) {
+        completedWordImage.src = imagePath;
+      } else {
+        completedWordImage.src = "/imagefiles/default.jpg";
+      }
+    })
+    .catch(() => {
+      completedWordImage.src = "/imagefiles/default.jpg";
+    });
+    
   completedWordImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
   
@@ -177,10 +190,7 @@ function incorrectLetter() {
   document.getElementById("game-over-message").textContent = "Wrong Letter! Try again!";
   document.getElementById("try-again-button").textContent = "Try Again";
   const errorImage = document.getElementById("completed-word-image");
-  errorImage.src = "imagefiles/tryagain.jpg";
-  errorImage.onerror = () => {
-    errorImage.src = "imagefiles/default.jpg";
-  };
+  errorImage.src = "/imagefiles/tryagain.jpg";
   errorImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
 }
@@ -189,7 +199,7 @@ async function playAudio(input, isWord = false) {
   try {
     const queryParam = isWord ? "word" : "char";
     const response = await fetch(`/api/audio?${queryParam}=${encodeURIComponent(input)}`);
-    if (!response.ok) throw new Error("Audio fetch failed");
+    if (!response.ok) return;
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     const source = audioContext.createBufferSource();
@@ -197,7 +207,7 @@ async function playAudio(input, isWord = false) {
     source.connect(audioContext.destination);
     source.start();
   } catch (error) {
-    console.error("Audio playback failed:", error);
+    console.warn("Audio playback failed:", error);
   }
 }
 
@@ -207,10 +217,7 @@ function endGame() {
   document.getElementById("collected-word").textContent = `Collected: ${collectedLetters.join("")}`;
   document.getElementById("try-again-button").textContent = "Try Again";
   const errorImage = document.getElementById("completed-word-image");
-  errorImage.src = "imagefiles/tryagain.jpg";
-  errorImage.onerror = () => {
-    errorImage.src = "imagefiles/default.jpg";
-  };
+  errorImage.src = "/imagefiles/tryagain.jpg";
   errorImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
 }
