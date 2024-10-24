@@ -229,8 +229,7 @@ function resetGame() {
   playerY = boardHeight / 2;
   velocity = 0;
   lastTime = 0;
-  selectNewWord();
-  placeLetters();
+  fetchWordData();
 }
 
 function restartGame() {
@@ -245,6 +244,17 @@ function handleClick() {
   if (gameStarted && !gameOver) {
     velocity = lift;
   }
+}
+
+function startGame() {
+  document.getElementById("start-screen").style.display = "none";
+  gameStarted = true;
+  gameOver = false;
+  playerY = boardHeight / 2;
+  velocity = 0;
+  collectedLetters = [];
+  lastTime = performance.now();
+  animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 window.onload = init;
