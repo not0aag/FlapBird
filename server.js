@@ -30,7 +30,6 @@ const audioFileMap = {
   "ृ": "13.ri", "ा": "matra_aa", "ि": "matra_i", "ी": "matra_ii", "ु": "matra_u", "ू": "matra_uu",
   "े": "matra_e", "ै": "matra_ai", "ो": "matra_o", "ौ": "matra_au", "्": "halant"
 };
-
 async function loadWordsData() {
   try {
     const categories = ["fruits", "vegetables", "animals", "colors"];
@@ -62,11 +61,12 @@ app.get("/api/audio", async (req, res) => {
   
   try {
     if (word) {
-      const audioPath = path.join(__dirname, "public", "audiofiles", "combinedwords", `${word.toLowerCase()}.mp3`);
+      const formattedWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      const audioPath = path.join(__dirname, "public", "audiofiles", "combinedwords", `${formattedWord}.mp3`);
       try {
         await fs.access(audioPath);
         res.sendFile(audioPath);
-      } catch {
+      } catch (error) {
         res.status(404).json({ error: "Word audio not found" });
       }
     } else if (char) {
@@ -102,4 +102,3 @@ app.get("/api/categories", (_, res) => {
 });
 
 loadWordsData();
-app.listen(port, () => console.log(`Server running on port ${port}`));
