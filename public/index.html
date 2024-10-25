@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hindi Flappy Bird</title>
-    <link rel="stylesheet" href="flappybird.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="welcome-screen">
@@ -17,18 +17,21 @@
             <button class="category-btn" data-category="fruits">Fruits</button>
         </div>
     </div>
+
     <div id="game-container">
         <canvas id="board"></canvas>
         <div id="game-info">
             <div id="score"></div>
             <div id="current-word"></div>
         </div>
+
         <div id="start-screen" class="game-screen">
             <h1>Hindi Flappy Bird</h1>
             <p>Press SPACE or Tap to fly</p>
             <button id="start-button" class="btn">Start Game</button>
             <button id="back-to-menu" class="btn secondary-btn">Back to Menu</button>
         </div>
+
         <div id="game-over-screen" class="game-screen">
             <h2 id="game-over-message"></h2>
             <div id="collected-word"></div>
@@ -39,9 +42,11 @@
             <button id="back-to-menu-gameover" class="btn secondary-btn">Back to Menu</button>
         </div>
     </div>
+
     <footer>
         Designed by <a href="https://github.com/not0aag" target="_blank">@not0aag</a>
     </footer>
+
     <script src="flappybird.js"></script>
 </body>
 </html>
