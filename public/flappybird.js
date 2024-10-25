@@ -31,8 +31,7 @@ function setupEventListeners() {
   document.querySelectorAll(".category-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentCategory = btn.dataset.category;
-      document.getElementById("welcome-screen").style.display = "none";
-      document.getElementById("game-container").style.display = "flex";
+      showScreen("game-container");
       fetchWordData();
     });
   });
@@ -51,6 +50,13 @@ function setupEventListeners() {
   document.getElementById("back-to-menu-gameover").addEventListener("click", backToMenu);
 }
 
+function showScreen(screenId) {
+  const screens = ["welcome-screen", "game-container", "start-screen", "game-over-screen"];
+  screens.forEach(screen => {
+    document.getElementById(screen).style.display = screen === screenId ? "flex" : "none";
+  });
+}
+
 async function fetchWordData() {
   try {
     const response = await fetch(`/api/words?category=${currentCategory}`);
@@ -58,6 +64,7 @@ async function fetchWordData() {
     if (data.length > 0) {
       selectNewWord(data);
       placeLetters();
+      showScreen("game-container");
       document.getElementById("start-screen").style.display = "flex";
       document.getElementById("game-over-screen").style.display = "none";
     }
@@ -181,8 +188,8 @@ function completeWord() {
     });
     
   completedWordImage.style.display = "block";
+  showScreen("game-container");
   document.getElementById("game-over-screen").style.display = "flex";
-  document.getElementById("start-screen").style.display = "none";
   
   setTimeout(() => {
     playAudio(currentWord, true);
@@ -196,8 +203,8 @@ function incorrectLetter() {
   const errorImage = document.getElementById("completed-word-image");
   errorImage.src = "/imagefiles/tryagain.jpg";
   errorImage.style.display = "block";
+  showScreen("game-container");
   document.getElementById("game-over-screen").style.display = "flex";
-  document.getElementById("start-screen").style.display = "none";
 }
 
 async function playAudio(input, isWord = false) {
@@ -224,29 +231,26 @@ function endGame() {
   const errorImage = document.getElementById("completed-word-image");
   errorImage.src = "/imagefiles/tryagain.jpg";
   errorImage.style.display = "block";
+  showScreen("game-container");
   document.getElementById("game-over-screen").style.display = "flex";
-  document.getElementById("start-screen").style.display = "none";
 }
 
 function backToMenu() {
-  document.getElementById("game-container").style.display = "none";
-  document.getElementById("welcome-screen").style.display = "block";
-  document.getElementById("game-over-screen").style.display = "none";
-  document.getElementById("start-screen").style.display = "none";
+  showScreen("welcome-screen");
   resetGame();
 }
+
 function resetGame() {
+  cancelAnimationFrame(animationFrameId);
   gameOver = false;
   gameStarted = false;
   playerY = boardHeight / 2;
   velocity = 0;
   lastTime = 0;
   collectedLetters = [];
-  cancelAnimationFrame(animationFrameId);
-  
-  document.getElementById("game-over-screen").style.display = "none";
   document.getElementById("completed-word-image").style.display = "none";
-  
+  document.getElementById("game-over-screen").style.display = "none";
+  document.getElementById("start-screen").style.display = "none";
   fetchWordData();
 }
 
