@@ -6,7 +6,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
 app.use(cors());
 app.use(express.static("public"));
@@ -30,6 +30,7 @@ const audioFileMap = {
   "ृ": "13.ri", "ा": "matra_aa", "ि": "matra_i", "ी": "matra_ii", "ु": "matra_u", "ू": "matra_uu",
   "े": "matra_e", "ै": "matra_ai", "ो": "matra_o", "ौ": "matra_au", "्": "halant"
 };
+
 async function loadWordsData() {
   try {
     const categories = ["fruits", "vegetables", "animals", "colors"];
@@ -102,3 +103,7 @@ app.get("/api/categories", (_, res) => {
 });
 
 loadWordsData();
+
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Server is running on port ${port}`);
+});
