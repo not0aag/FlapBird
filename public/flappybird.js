@@ -53,7 +53,10 @@ function setupEventListeners() {
 function showScreen(screenId) {
   const screens = ["welcome-screen", "game-container", "start-screen", "game-over-screen"];
   screens.forEach(screen => {
-    document.getElementById(screen).style.display = screen === screenId ? "flex" : "none";
+    const element = document.getElementById(screen);
+    if (element) {
+      element.style.display = screen === screenId ? "flex" : "none";
+    }
   });
 }
 
@@ -236,8 +239,29 @@ function endGame() {
 }
 
 function backToMenu() {
+  cancelAnimationFrame(animationFrameId);
+  resetGameState();
   showScreen("welcome-screen");
-  resetGame();
+}
+
+function resetGameState() {
+  gameOver = false;
+  gameStarted = false;
+  playerY = boardHeight / 2;
+  velocity = 0;
+  lastTime = 0;
+  collectedLetters = [];
+  letterArray = [];
+  currentWord = "";
+  currentWordHindi = "";
+  currentCategory = "";
+  
+  const completedWordImage = document.getElementById("completed-word-image");
+  if (completedWordImage) {
+    completedWordImage.style.display = "none";
+  }
+  
+  context.clearRect(0, 0, boardWidth, boardHeight);
 }
 
 function resetGame() {
