@@ -28,20 +28,12 @@ function init() {
 }
 
 function setupEventListeners() {
-  const categoryOrder = ["animals", "colors", "vegetables", "fruits"];
-  const container = document.querySelector(".category-buttons");
-  
-  categoryOrder.forEach(category => {
-    const button = document.createElement("button");
-    button.className = "category-btn";
-    button.dataset.category = category;
-    button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-    button.addEventListener("click", () => {
-      currentCategory = category;
+  document.querySelectorAll(".category-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentCategory = btn.dataset.category;
       showScreen("game-container");
       fetchWordData();
     });
-    container.appendChild(button);
   });
 
   board.addEventListener("click", handleClick);
@@ -59,29 +51,29 @@ function setupEventListeners() {
 }
 
 function showScreen(screenId) {
-  document.getElementById("welcome-screen").style.display = screenId === "welcome-screen" ? "flex" : "none";
-  document.getElementById("game-container").style.display = screenId === "game-container" ? "flex" : "none";
-  
-  if (screenId === "welcome-screen") {
-    const container = document.querySelector(".category-buttons");
-    container.innerHTML = "";
-    setupEventListeners();
-  }
+  const screens = ["welcome-screen", "game-container", "start-screen", "game-over-screen"];
+  screens.forEach(screen => {
+    const element = document.getElementById(screen);
+    if (element) {
+      element.style.display = screen === screenId ? "flex" : "none";
+    }
+  });
 }
 
-function fetchWordData() {
-  fetch(`/api/words?category=${currentCategory}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.length > 0) {
-        selectNewWord(data);
-        placeLetters();
-        showScreen("game-container");
-        document.getElementById("start-screen").style.display = "flex";
-        document.getElementById("game-over-screen").style.display = "none";
-      }
-    })
-    .catch(error => console.error("Error fetching word data:", error));
+async function fetchWordData() {
+  try {
+    const response = await fetch(`/api/words?category=${currentCategory}`);
+    const data = await response.json();
+    if (data.length > 0) {
+      selectNewWord(data);
+      placeLetters();
+      showScreen("game-container");
+      document.getElementById("start-screen").style.display = "flex";
+      document.getElementById("game-over-screen").style.display = "none";
+    }
+  } catch (error) {
+    console.error("Error fetching word data:", error);
+  }
 }
 
 function selectNewWord(words) {
