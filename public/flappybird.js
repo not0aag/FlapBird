@@ -59,6 +59,7 @@ async function fetchWordData() {
       selectNewWord(data);
       placeLetters();
       document.getElementById("start-screen").style.display = "flex";
+      document.getElementById("game-over-screen").style.display = "none";
     }
   } catch (error) {
     console.error("Error fetching word data:", error);
@@ -181,6 +182,7 @@ function completeWord() {
     
   completedWordImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
+  document.getElementById("start-screen").style.display = "none";
   
   setTimeout(() => {
     playAudio(currentWord, true);
@@ -195,6 +197,7 @@ function incorrectLetter() {
   errorImage.src = "/imagefiles/tryagain.jpg";
   errorImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
+  document.getElementById("start-screen").style.display = "none";
 }
 
 async function playAudio(input, isWord = false) {
@@ -222,31 +225,46 @@ function endGame() {
   errorImage.src = "/imagefiles/tryagain.jpg";
   errorImage.style.display = "block";
   document.getElementById("game-over-screen").style.display = "flex";
+  document.getElementById("start-screen").style.display = "none";
 }
 
 function backToMenu() {
   document.getElementById("game-container").style.display = "none";
   document.getElementById("welcome-screen").style.display = "block";
+  document.getElementById("game-over-screen").style.display = "none";
+  document.getElementById("start-screen").style.display = "none";
   resetGame();
 }
-
 function resetGame() {
-  document.getElementById("game-over-screen").style.display = "none";
-  document.getElementById("completed-word-image").style.display = "none";
   gameOver = false;
   gameStarted = false;
   playerY = boardHeight / 2;
   velocity = 0;
   lastTime = 0;
+  collectedLetters = [];
+  cancelAnimationFrame(animationFrameId);
+  
+  document.getElementById("game-over-screen").style.display = "none";
+  document.getElementById("completed-word-image").style.display = "none";
+  
   fetchWordData();
 }
 
 function restartGame() {
-  resetGame();
-  startGame();
+  if (document.getElementById("try-again-button").textContent === "Next Word") {
+    resetGame();
+  } else {
+    document.getElementById("game-over-screen").style.display = "none";
+    resetGame();
+    startGame();
+  }
 }
 
 function handleClick() {
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
+  }
+  
   if (!gameStarted && !gameOver) {
     startGame();
   }
@@ -256,14 +274,17 @@ function handleClick() {
 }
 
 function startGame() {
-  document.getElementById("start-screen").style.display = "none";
-  gameStarted = true;
-  gameOver = false;
-  playerY = boardHeight / 2;
-  velocity = 0;
-  collectedLetters = [];
-  lastTime = performance.now();
-  animationFrameId = requestAnimationFrame(gameLoop);
+  if (!gameStarted && !gameOver) {
+    document.getElementById("start-screen").style.display = "none";
+    document.getElementById("game-over-screen").style.display = "none";
+    gameStarted = true;
+    playerY = boardHeight / 2;
+    velocity = 0;
+    collectedLetters = [];
+    placeLetters();
+    lastTime = performance.now();
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
 }
 
 window.onload = init;
