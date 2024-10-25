@@ -51,13 +51,10 @@ function setupEventListeners() {
 }
 
 function showScreen(screenId) {
-  const screens = ["welcome-screen", "game-container", "start-screen", "game-over-screen"];
-  screens.forEach(screen => {
-    const element = document.getElementById(screen);
-    if (element) {
-      element.style.display = screen === screenId ? "flex" : "none";
-    }
-  });
+  document.getElementById("welcome-screen").style.display = screenId === "welcome-screen" ? "flex" : "none";
+  document.getElementById("game-container").style.display = screenId === "game-container" ? "flex" : "none";
+  document.getElementById("start-screen").style.display = screenId === "start-screen" ? "flex" : "none";
+  document.getElementById("game-over-screen").style.display = screenId === "game-over-screen" ? "flex" : "none";
 }
 
 async function fetchWordData() {
@@ -69,7 +66,6 @@ async function fetchWordData() {
       placeLetters();
       showScreen("game-container");
       document.getElementById("start-screen").style.display = "flex";
-      document.getElementById("game-over-screen").style.display = "none";
     }
   } catch (error) {
     console.error("Error fetching word data:", error);
@@ -240,28 +236,17 @@ function endGame() {
 
 function backToMenu() {
   cancelAnimationFrame(animationFrameId);
-  resetGameState();
-  showScreen("welcome-screen");
-}
-
-function resetGameState() {
-  gameOver = false;
+  context.clearRect(0, 0, boardWidth, boardHeight);
   gameStarted = false;
+  gameOver = false;
   playerY = boardHeight / 2;
   velocity = 0;
-  lastTime = 0;
-  collectedLetters = [];
   letterArray = [];
+  collectedLetters = [];
   currentWord = "";
   currentWordHindi = "";
   currentCategory = "";
-  
-  const completedWordImage = document.getElementById("completed-word-image");
-  if (completedWordImage) {
-    completedWordImage.style.display = "none";
-  }
-  
-  context.clearRect(0, 0, boardWidth, boardHeight);
+  showScreen("welcome-screen");
 }
 
 function resetGame() {
@@ -273,8 +258,6 @@ function resetGame() {
   lastTime = 0;
   collectedLetters = [];
   document.getElementById("completed-word-image").style.display = "none";
-  document.getElementById("game-over-screen").style.display = "none";
-  document.getElementById("start-screen").style.display = "none";
   fetchWordData();
 }
 
@@ -304,7 +287,6 @@ function handleClick() {
 function startGame() {
   if (!gameStarted && !gameOver) {
     document.getElementById("start-screen").style.display = "none";
-    document.getElementById("game-over-screen").style.display = "none";
     gameStarted = true;
     playerY = boardHeight / 2;
     velocity = 0;
